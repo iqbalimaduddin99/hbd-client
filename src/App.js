@@ -4,11 +4,12 @@ import {
   Routes,
   Link,
   Switch,
+  useNavigate,
 } from "react-router-dom";
 import "./App.css";
 import PrivateRoute from "./routes/PrivateRoute";
-
-import { useContext, useEffect } from "react";
+import { Modal } from "antd";
+import { useContext, useEffect, useState } from "react";
 
 import { UserContext, UserContextProvider } from "./context/useContext";
 import Home from "./pages/Home";
@@ -53,22 +54,20 @@ function App() {
   }, []);
   console.log("env", process.env);
 
-  console.log(state.isLogin);
-
   return (
-    <Router>
-      <Routes>
-        {state.isLogin ? (
-          <Route path="/*" element={<PrivateRoute />} />
-        ) : (
-          <>
-            <Route exact path="/" element={<Home />} />
-            <Route path="/create-user" element={<CreateUserPage />} />
-            <Route path="/*" element={<NotFound />} />
-          </>
-        )}
-      </Routes>
-    </Router>
+      <Router>
+        <Routes>
+          {state.isLogin ? (
+            <Route path="/*" element={<PrivateRoute />} />
+          ) : (
+            <>
+              <Route exact path="/" element={<Home />} />
+              <Route path="/create-user" element={<CreateUserPage />} />
+              <Route path="/*" element={<NotFound />} />
+            </>
+          )}
+        </Routes>
+      </Router>
   );
 }
 

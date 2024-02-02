@@ -4,6 +4,7 @@ import { LogoutOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { deletUser } from "../../service/user";
 import { UserContext } from "../../context/useContext";
+import BirthDay  from "../atoms/Birtday"
 
 const AccountPage = () => {
   const navigate = useNavigate();
@@ -61,6 +62,7 @@ const AccountPage = () => {
           zIndex: 1,
         }}
       >
+        <BirthDay />
         <Space>
           <Popconfirm
             title="Are you sure want to logout?"

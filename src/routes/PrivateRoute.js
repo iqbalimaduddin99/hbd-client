@@ -1,27 +1,36 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import Home from "../components/organism/Home";
 import Update from "../pages/Update";
 import NotFound from "../pages/Not Found";
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { Modal } from "antd";
 import { UserContext } from "../context/useContext";
+import { getBirthDay } from "../service/user";
 // import Logout from "./Logout";
 
 function PrivateRoute() {
-  const [state] = useContext(UserContext);
+  const [state, dispatch] = useContext(UserContext);
 
   function fetchData() {
-    // Lakukan panggilan API di sini (menggunakan fetch atau XMLHttpRequest)
-    fetch("https://example.com/api/data")
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Data from API:", data);
-        // Lakukan sesuatu dengan data yang diterima dari API
+    getBirthDay()
+      .then((response) => {
+        if (response && response.message) {
+          console.log(response);
+          if (response.message === "Successfully Sent BirthDay") {
+            dispatch({ type: "set_birthday", payload: "sent" });
+          } else if (response.message === "The birthday has sent") {
+            dispatch({ type: "set_birthday", payload: "close-sent" });
+          }
+        }
       })
       .catch((error) => console.error("Error fetching data:", error));
   }
 
-  function scheduleApiCall() {
+  const scheduleApiCall = () => {
     const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
+
     const scheduledTime = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -29,35 +38,51 @@ function PrivateRoute() {
       9,
       0,
       0
-    ); // Setiap hari pukul 12:00
+    );
 
-    // Hitung selisih waktu antara sekarang dan waktu terjadwal
+    let timeoutId;
+
+    if (
+      currentHour > 9 ||
+      (currentHour === 9 && currentMinutes > 0) ||
+      (currentHour === 9 && currentMinutes < 0)
+    ) {
+      fetchData();
+    }
+
     const timeDiff = scheduledTime - now;
 
     if (timeDiff > 0) {
-      // Jadwalkan panggilan API sesuai dengan selisih waktu
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         fetchData();
-        // Setelah panggilan API, jadwalkan ulang untuk hari berikutnya
         scheduleApiCall();
       }, timeDiff);
     } else {
-      // Jika waktu terjadwal sudah lewat untuk hari ini, jadwalkan ulang untuk hari berikutnya
       const tomorrow = new Date(now);
       tomorrow.setDate(now.getDate() + 1);
-      tomorrow.setHours(12, 0, 0, 0);
+      tomorrow.setHours(9, 0, 0, 0);
       const nextDayTimeDiff = tomorrow - now;
 
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         fetchData();
-        // Setelah panggilan API, jadwalkan ulang untuk hari berikutnya
         scheduleApiCall();
       }, nextDayTimeDiff);
     }
-  }
 
-  // Jalankan fungsi scheduleApiCall untuk pertama kali
-  scheduleApiCall();
+    return timeoutId;
+  };
+
+  useEffect(() => {
+    let timeoutId;
+
+    if (state.isLogin) {
+      timeoutId = scheduleApiCall();
+    }
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [state.isLogin]);
 
   return (
     <Routes>

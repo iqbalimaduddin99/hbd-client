@@ -4,7 +4,8 @@ export const UserContext = createContext();
 
 const initialState = {
   isLogin: false,
-  user: {}
+  user: {},
+  birthDay: null,
 };
 
 const reducer = (state, action) => {
@@ -16,8 +17,13 @@ const reducer = (state, action) => {
         isLogin: true,
         user: payload,
       };
+    case "set_birthday":
+      return {
+        ...state,
+        birthDay: action.payload,
+      };
     case "logout":
-      localStorage.removeItem('token')
+      localStorage.removeItem("token");
       return {
         isLogin: false,
         user: {},
@@ -37,4 +43,3 @@ export const UserContextProvider = (props) => {
     </UserContext.Provider>
   );
 };
-
